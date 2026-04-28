@@ -4,64 +4,176 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SIT Campus App - Login</title>
-    <link rel="stylesheet" href="../../static/css/shared/base.css"       th:href="@{/css/shared/base.css}">
-    <link rel="stylesheet" href="../../static/css/shared/components.css" th:href="@{/css/shared/components.css}">
-    <link rel="stylesheet" href="../../static/css/auth/login.css"        th:href="@{/css/auth/login.css}">
+    <link rel="stylesheet" href="../../static/css/shared/base.css" th:href="@{/css/shared/base.css}">
+<link rel="stylesheet" href="../../static/css/shared/components.css" th:href="@{/css/shared/components.css}">
+<link rel="stylesheet" href="../../static/css/auth/login.css" th:href="@{/css/auth/login.css}">
 </head>
 <body>
     <main class="sit-split-layout">
-        
+
+        <!-- LEFT: Brand Pane -->
         <section class="sit-brand-pane">
             <div class="sit-brand-content">
                 <img src="../../static/images/Symlogo333.jpg" th:src="@{/images/Symlogo333.jpg}" alt="SIT Pune Logo" class="sit-brand-logo">
                 <h1 class="sit-brand-title">SIT Pune</h1>
                 <h2 class="sit-brand-subtitle">Campus App</h2>
-                <p class="sit-brand-description">A transparent, high-speed portal to report and track infrastructure issues across the campus.</p>
+                <p class="sit-brand-description">
+                    A transparent, high-speed portal to report and track
+                    infrastructure issues across the campus.
+                </p>
             </div>
         </section>
 
+        <!-- RIGHT: Login Form -->
         <section class="sit-form-pane">
             <div class="sit-auth-card">
                 <h3 class="sit-auth-card__header">Login to Your Portal</h3>
-                
-                <form class="sit-auth-form" th:action="@{/login}" method="POST">
-                    
+
+                <!-- Logout success message -->
+                <div id="successMsg" class="sit-auth-error"
+                     style="display:none; background:#d1fae5; border-left-color:#10b981;">
+                    <p class="sit-error-text" style="color:#065f46;">
+                        You have been logged out successfully.
+                    </p>
+                </div>
+
+                <!-- Error message -->
+                <div id="errorBox" class="sit-auth-error" style="display:none;">
+                    <p id="errorText" class="sit-error-text"></p>
+                </div>
+
+                <!-- No form action — login is handled by fetch below -->
+                <form id="loginForm" class="sit-auth-form">
+
                     <div class="sit-input-group">
                         <label for="email" class="sit-input-label">SIT Email Address</label>
                         <div class="sit-input-wrapper">
-                            <svg class="sit-input-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <svg class="sit-input-icon" xmlns="http://www.w3.org/2000/svg"
+                                 viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
                                 <polyline points="22,6 12,13 2,6"></polyline>
                             </svg>
-                            <input type="email" id="email" name="email" class="sit-input-field sit-input-field--icon" placeholder="e.g., user@sitpune.edu.in" required title="Please use your official SIT email">
+                            <input type="email"
+                                   id="email"
+                                   class="sit-input-field sit-input-field--icon"
+                                   placeholder="firstname.lastname.btech2024@sitpune.edu.in"
+                                   required
+                                   autocomplete="email">
                         </div>
                     </div>
 
                     <div class="sit-input-group">
                         <label for="password" class="sit-input-label">Password</label>
                         <div class="sit-input-wrapper">
-                            <svg class="sit-input-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <svg class="sit-input-icon" xmlns="http://www.w3.org/2000/svg"
+                                 viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
                                 <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                             </svg>
-                            <input type="password" id="password" name="password" class="sit-input-field sit-input-field--icon" placeholder="Enter your password" required>
+                            <input type="password"
+                                   id="password"
+                                   class="sit-input-field sit-input-field--icon"
+                                   placeholder="Enter your password"
+                                   required
+                                   autocomplete="current-password">
                         </div>
                     </div>
 
-                    <button type="submit" class="sit-auth-card__submit">Login</button>
+                    <button type="submit" id="loginBtn" class="sit-auth-card__submit">
+                        Login
+                    </button>
                 </form>
 
-                <div class="sit-auth-divider">
-                    <span>or</span>
-                </div>
+                <div class="sit-auth-divider"><span>or</span></div>
 
                 <div class="sit-auth-footer">
                     <p class="sit-auth-footer__text">New Student?</p>
-                    <a th:href="@{/auth/verify-prn}" href="verify-prn.html" class="sit-btn-secondary">Verify PRN & Setup Account</a>
+                    <a th:href="@{/auth/verify-prn}" class="sit-btn-secondary">
+                        Verify PRN &amp; Setup Account
+                    </a>
                 </div>
             </div>
         </section>
 
     </main>
+
+    <script>
+        const BASE_URL = 'http://localhost:8080';
+
+        // Show logout success message if coming back from logout
+        if (sessionStorage.getItem('loggedOut') === 'true') {
+            document.getElementById('successMsg').style.display = 'block';
+            sessionStorage.removeItem('loggedOut');
+        }
+
+        // If already logged in, skip login page
+        const existingRole = sessionStorage.getItem('userRole');
+        if (existingRole === 'ADMIN') {
+            window.location.href = '/admin/hub';
+        } else if (existingRole === 'STUDENT') {
+            window.location.href = '/student/dashboard';
+        }
+
+        function showError(msg) {
+            document.getElementById('errorText').textContent = msg;
+            document.getElementById('errorBox').style.display = 'block';
+        }
+
+        function hideError() {
+            document.getElementById('errorBox').style.display = 'none';
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            hideError();
+
+            const email    = document.getElementById('email').value.toLowerCase().trim();
+            const password = document.getElementById('password').value;
+            const btn      = document.getElementById('loginBtn');
+
+            btn.disabled    = true;
+            btn.textContent = 'Logging in...';
+
+            try {
+                const response = await fetch(`${BASE_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, passwordHash: password })
+                });
+
+                const text = await response.text();
+
+                if (response.ok) {
+                    // Save user info for use across pages
+                    sessionStorage.setItem('userEmail', email);
+                    sessionStorage.setItem('userRole', text);
+
+                    // Redirect based on role
+                    if (text === 'ADMIN') {
+                        window.location.href = '/admin/hub';
+                    } else {
+                        window.location.href = '/student/dashboard';
+                    }
+                } else {
+                    if (response.status === 404) {
+                        showError('No account found. Please register first.');
+                    } else if (response.status === 401) {
+                        showError('Wrong password. Please try again.');
+                    } else if (response.status === 403) {
+                        showError('Please verify your email before logging in.');
+                    } else {
+                        showError(text || 'Login failed. Please try again.');
+                    }
+                }
+            } catch (err) {
+                showError('Cannot connect to server. Make sure the backend is running on port 8080.');
+            } finally {
+                btn.disabled    = false;
+                btn.textContent = 'Login';
+            }
+        });
+    </script>
 </body>
 </html>
